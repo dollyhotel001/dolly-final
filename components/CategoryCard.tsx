@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ROOM_SPECS } from '@/lib/config'
 import { Wifi, Snowflake, Tv, Droplets, Video, Car, ShowerHead } from 'lucide-react'
 import Image from 'next/image'
@@ -56,6 +56,11 @@ const getSpecIcon = (spec: string) => {
 
 export default function CategoryCard({ category }: CategoryCardProps) {
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [showVideo, setShowVideo] = useState(true) // Start with true if video exists
+    const [videoError, setVideoError] = useState(false)
+    const [videoLoaded, setVideoLoaded] = useState(false)
+    const videoRef = useRef<HTMLVideoElement>(null)
+
     const mainImage = category.images[0]?.url || '/placeholder-room.svg'
     const hasVideo = category.videoUrl && category.videoUrl.trim() !== ''
 
@@ -63,6 +68,42 @@ export default function CategoryCard({ category }: CategoryCardProps) {
     console.log('🖼️ Main Image:', mainImage)
     console.log('🎬 Has Video:', hasVideo)
     console.log('📊 Images Count:', category.images?.length || 0)
+
+    // Simplified video loading - remove intersection observer for now
+    useEffect(() => {
+        if (hasVideo) {
+            setShowVideo(true)
+        }
+    }, [hasVideo])
+
+    const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+        console.error('❌ Video failed to load:', category.videoUrl, e)
+        setVideoError(true)
+        setShowVideo(false)
+
+        // Try to reload the video after a delay (sometimes helps with Safari)
+        setTimeout(() => {
+            if (videoRef.current) {
+                videoRef.current.load()
+            }
+        }, 2000)
+    }
+
+    const handleVideoLoad = () => {
+        console.log('✅ Video loaded successfully:', category.videoUrl)
+        setVideoLoaded(true)
+        setVideoError(false)
+    }
+
+    const handleVideoCanPlay = () => {
+        setVideoLoaded(true) // Set loaded when can play
+        if (videoRef.current) {
+            videoRef.current.play().catch((error) => {
+                console.warn('Video autoplay failed:', error)
+                // Autoplay failed, but that's ok - video is still loaded
+            })
+        }
+    }
 
     const roomData = {
         id: category.id,
@@ -82,32 +123,38 @@ export default function CategoryCard({ category }: CategoryCardProps) {
             <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                 {/* Image or Video */}
                 <div className="relative h-48">
-                    {hasVideo ? (
-                        /* Show video when available */
+                    {/* Always show image as background/fallback */}
+                    <Image
+                        src={mainImage}
+                        alt={category.title}
+                        width={400}
+                        height={250}
+                        className="w-full h-full object-cover"
+                        priority={false}
+                    />
+
+                    {/* Video overlay - only show if video should be displayed and no error */}
+                    {hasVideo && showVideo && !videoError && (
                         <video
+                            ref={videoRef}
                             src={category.videoUrl!}
                             autoPlay
                             loop
                             muted
                             playsInline
-                            className="w-full h-full object-cover"
+                            preload="metadata"
+                            className="absolute inset-0 w-full h-full object-cover"
                             poster={mainImage}
-                            onError={(e) => {
-                                console.error('❌ Video failed to load:', category.videoUrl, e);
-                                // Hide video and show image instead
-                                e.currentTarget.style.display = 'none';
+                            onError={handleVideoError}
+                            onLoadedData={handleVideoLoad}
+                            onCanPlay={handleVideoCanPlay}
+                            onLoadStart={() => {
+                                console.log('🔄 Video loading started:', category.videoUrl)
+                                setVideoLoaded(false)
                             }}
                         />
-                    ) : (
-                        /* Show image when no video */
-                        <Image
-                            src={mainImage}
-                            alt={category.title}
-                            width={400}
-                            height={250}
-                            className="w-full h-full object-cover"
-                        />
                     )}
+
                     {/* Video Indicator Badge */}
                     {hasVideo && (
                         <div className="absolute bottom-4 left-4 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
@@ -115,6 +162,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
                             Video
                         </div>
                     )}
+
                     <div className="absolute top-4 right-4 bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-semibold">
                         {category.roomCount} Available
                     </div>
