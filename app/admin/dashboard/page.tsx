@@ -577,7 +577,7 @@ export default function Dashboard() {
                                   </span>
                                 </div>
                                 <span className="font-bold text-green-600 text-lg">
-                                  ${(price.rateCents / 100).toFixed(2)}
+                                  ₹{(price.rateCents / 100).toFixed(2)}
                                 </span>
                               </div>
                             ))}

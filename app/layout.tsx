@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Grand Hotel - Luxury Accommodation",
+  title: "Dolly Hotel",
   description: "Experience luxury, comfort, and unparalleled service in the heart of the city. Book your stay at Grand Hotel today.",
   keywords: "hotel, luxury, accommodation, grand hotel, rooms, booking",
 };

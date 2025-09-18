@@ -156,7 +156,7 @@ const PriceForm: React.FC<PriceFormProps> = ({
                                     </div>
                                     <div className="flex-1">
                                         <label className="block text-xs font-medium text-gray-700 mb-1">
-                                            Price ($)
+                                            Price (₹)
                                         </label>
                                         <input
                                             type="number"
