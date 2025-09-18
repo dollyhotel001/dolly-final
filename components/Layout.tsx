@@ -37,11 +37,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-white text-lg">
       {/* ✅ Navbar */}
       <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-          pathname === "/" && !isScrolled
+        className={`fixed top-0 w-full z-50 transition-all duration-300 ${pathname === "/" && !isScrolled
             ? "bg-transparent"
             : "bg-white shadow-sm border-b border-gray-100"
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -50,11 +49,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Hotel className="h-6 w-6 text-white" />
               </div>
               <span
-                className={`text-xl font-bold transition-colors ${
-                  pathname === "/" && !isScrolled
+                className={`text-xl font-bold transition-colors ${pathname === "/" && !isScrolled
                     ? "text-white"
                     : "text-gray-900"
-                }`}
+                  }`}
               >
                 Dolly Hotel
               </span>
@@ -66,24 +64,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Link
                   key={item.path}
                   href={item.path}
-                  className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
-                    isActive(item.path)
+                  className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActive(item.path)
                       ? "text-yellow-600 border-b-2 border-yellow-600"
                       : pathname === "/" && !isScrolled
-                      ? "text-white hover:text-yellow-400"
-                      : "text-gray-600 hover:text-yellow-600"
-                  }`}
+                        ? "text-white hover:text-yellow-400"
+                        : "text-gray-600 hover:text-yellow-600"
+                    }`}
                 >
                   {item.label}
                 </Link>
               ))}
               <Link
                 href="/admin/login"
-                className={`text-sm font-medium transition-colors duration-200 ml-4 ${
-                  pathname === "/" && !isScrolled
+                className={`text-sm font-medium transition-colors duration-200 ml-4 ${pathname === "/" && !isScrolled
                     ? "text-white hover:text-yellow-400"
                     : "text-gray-600 hover:text-yellow-600"
-                }`}
+                  }`}
               >
                 Admin
               </Link>
@@ -93,11 +89,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className={`transition-colors duration-200 ${
-                  pathname === "/" && !isScrolled
+                className={`transition-colors duration-200 ${pathname === "/" && !isScrolled
                     ? "text-white hover:text-yellow-400"
                     : "text-gray-700 hover:text-yellow-600"
-                }`}
+                  }`}
               >
                 {isMenuOpen ? (
                   <X className="h-6 w-6" />
@@ -116,11 +111,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <Link
                     key={item.path}
                     href={item.path}
-                    className={`block px-3 py-2 text-base font-medium transition-colors duration-200 ${
-                      isActive(item.path)
+                    className={`block px-3 py-2 text-base font-medium transition-colors duration-200 ${isActive(item.path)
                         ? "text-yellow-600 bg-yellow-50"
                         : "text-gray-700 hover:text-yellow-600 hover:bg-yellow-50"
-                    }`}
+                      }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.label}
@@ -143,7 +137,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <main>{children}</main>
 
-      {/* ✅ Footer (same as yours) */}
+      {/* ✅ Footer */}
       <footer className="bg-gray-900 text-gray-300 pt-16 pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -164,44 +158,44 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </h3>
               <ul className="space-y-3">
                 <li>
-                  <a
+                  <Link
                     href="/"
                     className="hover:text-yellow-400 transition-colors"
                   >
                     Home
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/rooms"
                     className="hover:text-yellow-400 transition-colors"
                   >
                     Rooms
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/gallery"
                     className="hover:text-yellow-400 transition-colors"
                   >
                     Gallery
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/prices"
                     className="hover:text-yellow-400 transition-colors"
                   >
                     Prices
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/contact"
                     className="hover:text-yellow-400 transition-colors"
                   >
                     Contact
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -230,7 +224,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <li className="flex items-start gap-2">
                   ✉️{" "}
                   <a
-                    href="mailto:souramoy@gmail.com"
+                    href="mailto:dollyhotelbandel@gmail.com"
                     className="hover:text-yellow-400"
                   >
                     dollyhotelbandel@gmail.com
@@ -247,6 +241,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="flex space-x-4">
                 <a
                   href="https://www.facebook.com/share/14LjfcKCHms/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 hover:bg-yellow-500 transition-colors"
                 >
                   <svg

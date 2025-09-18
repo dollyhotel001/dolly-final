@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { ChevronLeft, ChevronRight, Users, Bed, Maximize, Eye } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight, Users, Bed, Maximize, Eye, X } from "lucide-react";
 
 interface RoomImage {
     id: number;
@@ -44,6 +44,8 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
     const [roomFeatures, setRoomFeatures] = useState<RoomFeature[]>([]);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [videoError, setVideoError] = useState(false);
+    const router = useRouter();
 
     // Fetch room features from API
     useEffect(() => {
@@ -62,6 +64,47 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
         fetchRoomFeatures();
     }, []);
 
+    // Keyboard navigation for image modal
+    useEffect(() => {
+        if (!isImageModalOpen) return;
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            switch (event.key) {
+                case 'Escape':
+                    setIsImageModalOpen(false);
+                    break;
+                case 'ArrowLeft':
+                    event.preventDefault();
+                    setSelectedImageIndex(prev =>
+                        prev === 0 ? room.images.length - 1 : prev - 1
+                    );
+                    break;
+                case 'ArrowRight':
+                    event.preventDefault();
+                    setSelectedImageIndex(prev =>
+                        (prev + 1) % room.images.length
+                    );
+                    break;
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isImageModalOpen, room.images.length]);
+
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        if (isImageModalOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isImageModalOpen]);
+
     const nextImage = () => {
         setCurrentImageIndex((prev) => (prev + 1) % room.images.length);
     };
@@ -70,6 +113,16 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
         setCurrentImageIndex((prev) =>
             prev === 0 ? room.images.length - 1 : prev - 1
         );
+    };
+
+    const handleVideoError = () => {
+        setVideoError(true);
+        console.error('Video failed to load:', room.videoUrl);
+    };
+
+    const handlePricingClick = () => {
+        onClose?.();
+        router.push('/prices');
     };
 
     // Get room specifications for display
@@ -121,13 +174,10 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
     const roomSpecs = getRoomSpecs();
     const featuresGrouped = groupedFeatures();
 
-    // Debug: Log video URL
-    console.log('🎬 RoomDetailsModal - Video URL:', room.videoUrl);
-
     return (
         <div className="space-y-0">
             {/* Video Section */}
-            {room.videoUrl && (
+            {room.videoUrl && !videoError && (
                 <div className="relative w-full rounded-t-2xl overflow-hidden mb-4">
                     <video
                         src={room.videoUrl}
@@ -137,13 +187,15 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
                         muted
                         className="w-full h-80 object-cover"
                         poster={room.images[0]?.url}
+                        onError={handleVideoError}
+                        preload="metadata"
                     >
                         Your browser does not support the video tag.
                     </video>
 
                     {/* Category Badge */}
                     <div className="absolute top-4 left-4">
-                        <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                        <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
                             Standard Room!
                         </span>
                     </div>
@@ -153,12 +205,14 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
             {/* Image Gallery */}
             {room.images.length > 0 && (
                 <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3">Room Images ({room.images.length} of 4 max)</h3>
+                    <h3 className="text-lg font-semibold mb-3">
+                        Room Images ({room.images.length} of 4 max)
+                    </h3>
                     <div className="flex flex-wrap gap-2">
                         {room.images.map((image, index) => (
                             <div
                                 key={image.id}
-                                className="relative flex-1 min-w-0 h-16 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                                className="relative flex-1 min-w-0 h-16 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity group"
                                 style={{ maxWidth: 'calc(25% - 6px)' }}
                                 onClick={() => {
                                     setSelectedImageIndex(index);
@@ -167,31 +221,37 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
                             >
                                 <Image
                                     src={image.url}
-                                    alt={`${room.title} - Image ${index + 1}`}
+                                    alt={image.caption || `${room.title} - Image ${index + 1}`}
                                     fill
                                     sizes="(max-width: 768px) 25vw, (max-width: 1200px) 20vw, 15vw"
-                                    className="object-cover"
+                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                                 />
-                                <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+
+                                {/* View indicator */}
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Eye className="h-5 w-5 text-white drop-shadow-lg" />
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
             )}
 
-            {/* If no video, show main image like before */}
-            {!room.videoUrl && room.images.length > 0 && (
-                <div className="relative h-80 w-full rounded-t-2xl overflow-hidden mb-4">
+            {/* Main Image Display (when no video or video failed) */}
+            {(!room.videoUrl || videoError) && room.images.length > 0 && (
+                <div className="relative h-80 w-full rounded-t-2xl overflow-hidden mb-4 group">
                     <Image
                         src={room.images[currentImageIndex]?.url || room.images[0].url}
-                        alt={room.title}
+                        alt={room.images[currentImageIndex]?.caption || room.title}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
-                        className="object-cover"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        priority
                     />
 
                     {/* Image Counter */}
-                    <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm">
+                    <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm shadow-lg">
                         {currentImageIndex + 1} / {room.images.length}
                     </div>
 
@@ -200,13 +260,15 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
                         <>
                             <button
                                 onClick={prevImage}
-                                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-2 rounded-full hover:bg-white/30 transition-all duration-300"
+                                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 opacity-0 group-hover:opacity-100"
+                                aria-label="Previous image"
                             >
                                 <ChevronLeft className="h-5 w-5" />
                             </button>
                             <button
                                 onClick={nextImage}
-                                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-2 rounded-full hover:bg-white/30 transition-all duration-300"
+                                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 opacity-0 group-hover:opacity-100"
+                                aria-label="Next image"
                             >
                                 <ChevronRight className="h-5 w-5" />
                             </button>
@@ -215,13 +277,26 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
 
                     {/* Category Badge */}
                     <div className="absolute top-4 left-4">
-                        <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                        <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
                             Standard Room!
                         </span>
                     </div>
+
+                    {/* Click to expand indicator */}
+                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                            onClick={() => {
+                                setSelectedImageIndex(currentImageIndex);
+                                setIsImageModalOpen(true);
+                            }}
+                            className="bg-black/50 backdrop-blur-sm text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+                            aria-label="View full size image"
+                        >
+                            <Maximize className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
             )}
-
 
             {/* Content */}
             <div className="p-6 space-y-6">
@@ -239,32 +314,32 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
                 {/* Room Specifications */}
                 <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Room Specifications</h3>
-                    <div className="grid grid-cols-3 gap-4">
-                        <div className="flex items-center space-x-2">
-                            <div className="bg-orange-100 p-2 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="bg-orange-100 p-2 rounded-lg flex-shrink-0">
                                 <Bed className="h-5 w-5 text-orange-600" />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-sm text-gray-500">Bed Type</p>
-                                <p className="font-medium text-gray-900">{roomSpecs.bedType}</p>
+                                <p className="font-medium text-gray-900 truncate">{roomSpecs.bedType}</p>
                             </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <div className="bg-orange-100 p-2 rounded-lg">
+                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="bg-orange-100 p-2 rounded-lg flex-shrink-0">
                                 <Users className="h-5 w-5 text-orange-600" />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-sm text-gray-500">Max Occupancy</p>
-                                <p className="font-medium text-gray-900">{roomSpecs.maxOccupancy}</p>
+                                <p className="font-medium text-gray-900 truncate">{roomSpecs.maxOccupancy}</p>
                             </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <div className="bg-orange-100 p-2 rounded-lg">
+                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="bg-orange-100 p-2 rounded-lg flex-shrink-0">
                                 <Maximize className="h-5 w-5 text-orange-600" />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-sm text-gray-500">Room Size</p>
-                                <p className="font-medium text-gray-900">{roomSpecs.roomSize}</p>
+                                <p className="font-medium text-gray-900 truncate">{roomSpecs.roomSize}</p>
                             </div>
                         </div>
                     </div>
@@ -273,35 +348,35 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
                 {/* Room Features */}
                 <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Room Features</h3>
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Essential Amenities */}
-                        <div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
                             <h4 className="text-sm font-semibold text-gray-700 mb-3">Essential Amenities</h4>
                             <div className="space-y-2">
                                 {room.essentialAmenities && room.essentialAmenities.length > 0 ? (
                                     room.essentialAmenities.map((amenity, index) => (
                                         <div key={index} className="flex items-center space-x-2">
-                                            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                            <span className="text-gray-700">{amenity}</span>
+                                            <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                                            <span className="text-gray-700 text-sm">{amenity}</span>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="flex items-center space-x-2">
-                                        <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                                        <span className="text-gray-500">No essential amenities specified</span>
+                                        <div className="w-2 h-2 bg-gray-300 rounded-full flex-shrink-0"></div>
+                                        <span className="text-gray-500 text-sm">No essential amenities specified</span>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Additional Features */}
-                        <div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
                             <h4 className="text-sm font-semibold text-gray-700 mb-3">Additional Features</h4>
                             <div className="space-y-2">
                                 {featuresGrouped.feature?.map((feature, index) => (
                                     <div key={index} className="flex items-center space-x-2">
-                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                        <span className="text-gray-700">{feature.label}</span>
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                                        <span className="text-gray-700 text-sm">{feature.label}</span>
                                     </div>
                                 ))}
                                 {/* Show all other features if no specific 'feature' category */}
@@ -309,16 +384,16 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
                                     <>
                                         {getActiveFeatures().map((feature, index) => (
                                             <div key={index} className="flex items-center space-x-2">
-                                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                                <span className="text-gray-700">{feature.label}</span>
+                                                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                                                <span className="text-gray-700 text-sm">{feature.label}</span>
                                             </div>
                                         ))}
                                     </>
                                 )}
                                 {getActiveFeatures().length === 0 && (
                                     <div className="flex items-center space-x-2">
-                                        <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                                        <span className="text-gray-500">No additional features specified</span>
+                                        <div className="w-2 h-2 bg-gray-300 rounded-full flex-shrink-0"></div>
+                                        <span className="text-gray-500 text-sm">No additional features specified</span>
                                     </div>
                                 )}
                             </div>
@@ -328,37 +403,40 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
 
                 {/* View Pricing Button */}
                 <div className="border-t border-gray-200 pt-6">
-                    <Link
-                        href="/prices"
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-6 rounded-lg font-semibold transition-colors duration-300 flex items-center justify-center gap-2"
-                        onClick={onClose}
+                    <button
+                        onClick={handlePricingClick}
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-6 rounded-lg font-semibold transition-colors duration-300 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
                     >
                         <Eye className="h-5 w-5" />
                         View Pricing Details
-                    </Link>
+                    </button>
                 </div>
 
                 {/* Thumbnail Images */}
                 {room.images.length > 1 && (
                     <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">More Photos</h3>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {room.images.map((image: RoomImage, index) => (
                                 <button
                                     key={image.id}
                                     onClick={() => setCurrentImageIndex(index)}
-                                    className={`relative h-20 rounded-lg overflow-hidden border-2 transition-all duration-300 ${index === currentImageIndex
-                                        ? 'border-orange-500'
+                                    className={`relative h-20 rounded-lg overflow-hidden border-2 transition-all duration-300 group ${index === currentImageIndex
+                                        ? 'border-orange-500 ring-2 ring-orange-200'
                                         : 'border-gray-200 hover:border-gray-300'
                                         }`}
+                                    aria-label={`View image ${index + 1}`}
                                 >
                                     <Image
                                         src={image.url}
-                                        alt={image.caption || 'Room image'}
+                                        alt={image.caption || `Room image ${index + 1}`}
                                         fill
                                         sizes="(max-width: 768px) 25vw, (max-width: 1200px) 20vw, 15vw"
-                                        className="object-cover"
+                                        className="object-cover transition-transform duration-300 group-hover:scale-110"
                                     />
+                                    {index === currentImageIndex && (
+                                        <div className="absolute inset-0 bg-orange-500/20"></div>
+                                    )}
                                 </button>
                             ))}
                         </div>
@@ -368,22 +446,30 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
 
             {/* Image Modal */}
             {isImageModalOpen && (
-                <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-                    <div className="relative max-w-4xl max-h-full">
+                <div
+                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+                    onClick={() => setIsImageModalOpen(false)}
+                >
+                    <div
+                        className="relative max-w-4xl max-h-full"
+                        onClick={e => e.stopPropagation()}
+                    >
                         <Image
                             src={room.images[selectedImageIndex]?.url}
-                            alt={`${room.title} - Image ${selectedImageIndex + 1}`}
+                            alt={room.images[selectedImageIndex]?.caption || `${room.title} - Image ${selectedImageIndex + 1}`}
                             width={800}
                             height={600}
-                            className="object-contain max-h-[80vh]"
+                            className="object-contain max-h-[80vh] max-w-full"
+                            priority
                         />
 
                         {/* Close button */}
                         <button
                             onClick={() => setIsImageModalOpen(false)}
-                            className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+                            className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+                            aria-label="Close image viewer"
                         >
-                            <ChevronLeft className="h-6 w-6 rotate-45" />
+                            <X className="h-6 w-6" />
                         </button>
 
                         {/* Navigation */}
@@ -393,7 +479,8 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
                                     onClick={() => setSelectedImageIndex(prev =>
                                         prev === 0 ? room.images.length - 1 : prev - 1
                                     )}
-                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-3 rounded-full hover:bg-black/70 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+                                    aria-label="Previous image"
                                 >
                                     <ChevronLeft className="h-6 w-6" />
                                 </button>
@@ -401,7 +488,8 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
                                     onClick={() => setSelectedImageIndex(prev =>
                                         (prev + 1) % room.images.length
                                     )}
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-3 rounded-full hover:bg-black/70 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+                                    aria-label="Next image"
                                 >
                                     <ChevronRight className="h-6 w-6" />
                                 </button>
@@ -409,9 +497,16 @@ const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ room, onClose }) =>
                         )}
 
                         {/* Image counter */}
-                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
                             {selectedImageIndex + 1} / {room.images.length}
                         </div>
+
+                        {/* Image caption */}
+                        {room.images[selectedImageIndex]?.caption && (
+                            <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-lg text-sm max-w-md text-center">
+                                {room.images[selectedImageIndex].caption}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
