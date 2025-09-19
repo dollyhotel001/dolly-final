@@ -75,7 +75,7 @@ export default function ContactPage() {
     setStatus({ type: 'loading' });
 
     try {
-      const response = await axios.post('https://formsubmit.co/ajax/dollyhotel001@gmail.com', {
+      const response = await axios.post('https://formsubmit.co/ajax/dollyhotelbandel@gmail.com', {
         name: `${formData.firstName} ${formData.lastName}`.trim(),
         email: formData.email,
         subject: formData.subject || 'Contact Form Submission',
