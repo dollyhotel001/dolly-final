@@ -17,7 +17,11 @@ cloudinary.config({
   api_key: API_KEY,
   api_secret: API_SECRET,
 })
-
+console.log("Cloudinary config on server:", {
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY ? "set" : "missing",
+  api_secret: process.env.CLOUDINARY_API_SECRET ? "set" : "missing",
+});
 function validateCloudinaryEnv() {
   const missing: string[] = []
   if (!CLOUD_NAME) missing.push('CLOUDINARY_CLOUD_NAME')
