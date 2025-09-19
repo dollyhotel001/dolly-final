@@ -109,10 +109,18 @@ export async function POST(request: NextRequest) {
       success: true
     })
 
-  } catch (error: any) {
-  console.error("Upload error details:", error);
+  } catch (error: unknown) {
+  if (error instanceof Error) {
+    console.error("Upload error details:", error.message);
+    return NextResponse.json(
+      { error: "Upload failed", details: error.message },
+      { status: 500 }
+    );
+  }
+
+  console.error("Upload error details (non-Error):", error);
   return NextResponse.json(
-    { error: "Upload failed", details: error.message || String(error) },
+    { error: "Upload failed", details: String(error) },
     { status: 500 }
   );
 }
