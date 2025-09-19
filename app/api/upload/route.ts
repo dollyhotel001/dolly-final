@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     // Additional validation for videos
     if (isVideo) {
       // Check file size (approximate check for 60s video limit)
-      const maxVideoSize = 50 * 1024 * 1024 // 50MB (rough estimate for 60s video)
+      const maxVideoSize = 70 * 1024 * 1024 // 70MB (rough estimate for 60s video)
       if (file.size > maxVideoSize) {
         return NextResponse.json({
           error: 'Video file too large. Please ensure video is under 60 seconds.'
@@ -74,15 +74,24 @@ export async function POST(request: NextRequest) {
       cloudinary.uploader
         .upload_stream(
           {
-            resource_type: isVideo ? 'video' : 'image',
+            // Let Cloudinary detect the type; reduces "resource_type mismatch" issues
+            resource_type: 'auto',
             folder: 'dolly-hotel',
-            transformation: isVideo
-              ? [{ width: 1280, height: 720, crop: 'limit', quality: 'auto', duration: '60' }]
-              : [{ width: 1200, height: 800, crop: 'limit', quality: 'auto' }],
+            // Avoid heavy eager transforms in serverless. Transform on delivery instead.
+            // If you must transform images on upload only, do it for images, not videos.
+            // timeout in ms for the HTTP request to Cloudinary
+            timeout: 60000,
+            use_filename: true,
+            unique_filename: true,
           },
           (error, result) => {
             if (error) {
-              console.error('Cloudinary error:', error)
+              console.error('Cloudinary error:', {
+                http_code: (error as any)?.http_code,
+                name: (error as any)?.name,
+                message: (error as any)?.message,
+                details: (error as any)?.error,
+              })
               reject(error)
             } else if (result) {
               resolve(result)
