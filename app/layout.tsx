@@ -14,8 +14,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Dolly Hotel",
-  description: "Experience luxury, comfort, and unparalleled service in the heart of the city. Book your stay at Grand Hotel today.",
+  description:
+    "Experience luxury, comfort, and unparalleled service in the heart of the city. Book your stay at Grand Hotel today.",
   keywords: "hotel, luxury, accommodation, grand hotel, rooms, booking",
+  icons: {
+    icon: "/faviori.jpeg",
+  },
 };
 
 export default function RootLayout({
