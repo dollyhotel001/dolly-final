@@ -109,13 +109,13 @@ export async function POST(request: NextRequest) {
       success: true
     })
 
-  } catch (error) {
-    console.error('Upload error:', error)
-    return NextResponse.json(
-      { error: 'Upload failed. Please check your Cloudinary configuration.' },
-      { status: 500 }
-    )
-  }
+  } catch (error: any) {
+  console.error("Upload error details:", error);
+  return NextResponse.json(
+    { error: "Upload failed", details: error.message || String(error) },
+    { status: 500 }
+  );
+}
 }
 
 export async function DELETE(request: NextRequest) {
