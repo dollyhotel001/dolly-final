@@ -5,7 +5,7 @@ import type { UploadApiResponse } from 'cloudinary'
 // Force Node.js runtime and allow longer processing time
 export const runtime = 'nodejs'
 export const maxDuration = 60
-
+//for the varcel nothing to do with the actual code please ignore this line
 // Prefer server-side envs; fallback to NEXT_PUBLIC only if set
 const CLOUD_NAME =
   process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
