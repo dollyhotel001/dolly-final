@@ -259,10 +259,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           {/* Bottom bar */}
           <div className="mt-12 border-t border-gray-800 pt-6 text-center text-sm text-gray-500">
-            © {new Date().getFullYear()} Dolly Hotel. All rights reserved. 
-             <div className="mt-12 border-t border-gray-800 pt-6 text-center text-sm text-gray-500">
-            Developed and Marketed by LodgeDigital
-          </div>
+            
+            © {new Date().getFullYear()} Dolly Hotel. All rights reserved.
+            <div className="mt-2  text-center text-sm text-gray-500">Developed and Marketed by LodgeDigital</div>
           </div>
         </div>
       </footer>
