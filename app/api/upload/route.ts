@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
+import type { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary'
 
 // Force Node.js runtime and allow longer processing time
 export const runtime = 'nodejs'
@@ -67,10 +68,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes)
 
     // Upload to Cloudinary
-    const result = await new Promise<{
-      secure_url: string; public_id: string; resource_type: string; format: string;
-      width: number; height: number; bytes: number;
-    }>((resolve, reject) => {
+    const result = await new Promise<UploadApiResponse>((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
           {
@@ -78,19 +76,16 @@ export async function POST(request: NextRequest) {
             resource_type: 'auto',
             folder: 'dolly-hotel',
             // Avoid heavy eager transforms in serverless. Transform on delivery instead.
-            // If you must transform images on upload only, do it for images, not videos.
-            // timeout in ms for the HTTP request to Cloudinary
             timeout: 60000,
             use_filename: true,
             unique_filename: true,
           },
-          (error, result) => {
+          (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
             if (error) {
               console.error('Cloudinary error:', {
-                http_code: (error as any)?.http_code,
-                name: (error as any)?.name,
-                message: (error as any)?.message,
-                details: (error as any)?.error,
+                http_code: error.http_code,
+                name: error.name,
+                message: error.message,
               })
               reject(error)
             } else if (result) {
@@ -125,9 +120,18 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const missing = validateCloudinaryEnv()
+    if (missing.length) {
+      console.error('Cloudinary env missing:', missing.join(', '))
+      return NextResponse.json(
+        { error: `Cloudinary configuration missing: ${missing.join(', ')}` },
+        { status: 500 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const publicId = searchParams.get('publicId')
-    const resourceType = searchParams.get('resourceType') || 'image'
+    const resourceType = searchParams.get('resourceType') as 'image' | 'video' | 'raw' | 'auto' || 'image'
 
     if (!publicId) {
       return NextResponse.json({ error: 'Public ID is required' }, { status: 400 })
@@ -135,7 +139,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete from Cloudinary
     const result = await cloudinary.uploader.destroy(publicId, {
-      resource_type: resourceType as 'image' | 'video' | 'raw' | 'auto'
+      resource_type: resourceType
     })
 
     if (result.result === 'ok') {
