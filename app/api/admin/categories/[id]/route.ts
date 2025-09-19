@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth'
 import { categoryUpdateSchema } from '@/lib/validators'
 import prisma from '@/lib/prisma'
-
+import { Prisma } from '@prisma/client'
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -84,7 +84,7 @@ export async function PUT(
         }
 
         // Use a transaction to update both category and prices
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx :  Prisma.TransactionClient) => {
             // Update the category only if category data is provided
             if (validatedCategoryData) {
                 await tx.hotelCategory.update({
