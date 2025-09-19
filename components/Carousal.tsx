@@ -67,16 +67,16 @@ export default function HeroVideo() {
         </p>
         <div className="flex flex-col gap-4 items-center">
           <a
-            href="/contact"
+            href="/rooms"
             className="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-lg text-base font-semibold transition-all duration-300 transform hover:scale-105"
           >
-            Book Now
+            View Rooms
           </a>
           <a
-            href="/rooms"
+            href="/prices"
             className="bg-transparent border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white px-6 py-3 rounded-lg text-base font-semibold transition-all duration-300 transform hover:scale-105"
           >
-            View Rooms
+            View Prices
           </a>
         </div>
       </div>
