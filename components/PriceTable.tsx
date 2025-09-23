@@ -179,7 +179,7 @@ const PriceCard = ({
           <div className="flex items-center justify-center gap-2 mb-1 sm:mb-2">
             <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
             <h4 className="text-lg sm:text-xl font-bold text-gray-900">
-              {durationLabel}
+              Starting From
             </h4>
           </div>
           <div className="text-xs sm:text-sm text-gray-500 font-medium">
@@ -195,7 +195,7 @@ const PriceCard = ({
             ₹{formattedPrice}
           </div>
           <div className="text-[10px] sm:text-xs text-gray-500 font-medium uppercase tracking-wider">
-            {price.hourlyHours >= 24 ? "Per Day" : "Per Hour"}
+            {price.hourlyHours >= 24 ? "" : ""}
           </div>
         </div>
 

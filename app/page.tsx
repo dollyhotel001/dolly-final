@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Bed, Wifi, Car, Dumbbell, Coffee } from "lucide-react";
+import { Bed, Wifi, Car, BicepsFlexed, Coffee } from "lucide-react";
 import Layout from "@/components/Layout";
 import HeroCarousel from "@/components/Carousal";
+import Image from "next/image";
 
 export default async function HomePage() {
   return (
@@ -63,8 +64,21 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
-        </section>
 
+          {/* Pujo Offer Banner */}
+        </section>
+        <h1 className="font-bold text-4xl mb-4 text-gray-900 text-center">
+          Exclusive Pujo Offer
+        </h1>
+        <Image
+          src="/pujooffer.jpeg"
+          alt="Exclusive Pujo Offer"
+          width={1000}
+          height={1000}
+          className="w-96 md:w-full p-4 mx-auto h-64 md:h-[30rem] object-contain mt-8"
+          priority
+        />
+        <section></section>
         {/* World-Class Amenities */}
         <section className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -74,7 +88,7 @@ export default async function HomePage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {[
                 {
                   icon: Wifi,
@@ -91,6 +105,11 @@ export default async function HomePage() {
                   icon: Coffee,
                   title: "Room Service",
                   description: "24-hour dining service",
+                },
+                {
+                  icon: BicepsFlexed,
+                  title: "Full Safety and Security",
+                  description: "24-hour security service",
                 },
               ].map((feature, index) => (
                 <div key={index} className="text-center">
